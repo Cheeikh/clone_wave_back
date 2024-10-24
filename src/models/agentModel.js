@@ -1,21 +1,17 @@
-// src/models/userModel.js
-
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-const userSchema = new mongoose.Schema({
+const agentSchema = new Schema({
     nom: { type: String, required: true },
     prenom: { type: String, required: true },
     telephone: {type: String, required: true, unique: true,},
     pinCode: {type: String, required: true,},
     solde: { type: Number, default: 0 },
-    roles: [{ type: String, enum: ['utilisateur', 'agent', 'admin'], default: 'utilisateur' }],
+    commissionsAccumulees: { type: Number, default: 0 },
+    roles: [{ type: String, enum: ['agent'] }],
     isTelephoneVerifie: { type: Boolean, default: false },
-    tokens: [{ type: String }], // Pour stocker les JWT actifs
     creeLe: { type: Date, default: Date.now },
     modifieLe: { type: Date, default: Date.now },
-    // Ajoutez d'autres champs utilisateur si nécessaire
-}, {
-    timestamps: true,
 });
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model('Agent', agentSchema);

@@ -1,0 +1,88 @@
+openapi: 3.0.0
+info:
+  title: Wave Mobile Clone API
+  version: '1.0.0'
+  description: Documentation de l'API pour le clone de Wave Mobile
+servers:
+  - url: http://localhost:5000
+tags:
+  - name: Auth
+    description: Gestion de l'authentification
+  - name: Transactions
+    description: Gestion des transactions financières
+paths:
+  /api/auth/register:
+    post:
+      summary: Inscription d'un nouvel utilisateur
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegister'
+      responses:
+        '201':
+          description: Utilisateur créé avec succès
+        '400':
+          description: Erreur de validation
+  /api/auth/login:
+    post:
+      summary: Connexion de l'utilisateur
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: Connexion réussie
+        '401':
+          description: Identifiants invalides
+  /api/transactions:
+    get:
+      summary: Récupérer la liste des transactions
+      tags:
+        - Transactions
+      parameters:
+        - in: query
+          name: filter
+          schema:
+            type: string
+          description: Filtrer les transactions (jour, semaine, mois, année)
+      responses:
+        '200':
+          description: Liste des transactions
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    UserRegister:
+      type: object
+      properties:
+        phoneNumber:
+          type: string
+          description: Numéro de téléphone de l'utilisateur
+        pinCode:
+          type: string
+          description: Code PIN à 4 chiffres
+      required:
+        - phoneNumber
+        - pinCode
+    UserLogin:
+      type: object
+      properties:
+        phoneNumber:
+          type: string
+        pinCode:
+          type: string
+      required:
+        - phoneNumber
+        - pinCode

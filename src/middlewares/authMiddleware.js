@@ -1,41 +1,29 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 
-const authMiddleware = async (req, res, next) => {
+exports.authenticateUser = async (req, res, next) => {
     try {
-        // Récupérer le token du header Authorization
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({
-                success: false,
-                message: 'Accès non autorisé. Token manquant'
-            });
-        }
-
-        const token = authHeader.split(' ')[1];
-        
-        // Vérifier le token
+        const token = req.header('Authorization').replace('Bearer ', '');
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        
-        // Récupérer l'utilisateur
-        const user = await User.findById(decoded.userId);
+        const user = await User.findOne({ _id: decoded.id, 'tokens': token });
+
         if (!user) {
-            return res.status(401).json({
-                success: false,
-                message: 'Utilisateur non trouvé'
-            });
+            throw new Error();
         }
 
-        // Ajouter l'utilisateur à la requête
+        req.token = token;
         req.user = user;
         next();
     } catch (error) {
-        console.error('Erreur d\'authentification:', error);
-        return res.status(401).json({
-            success: false,
-            message: 'Token invalide ou expiré'
-        });
+        res.status(401).json({ message: 'Veuillez vous authentifier' });
     }
 };
 
-module.exports = authMiddleware;
+exports.authorizeRoles = (...roles) => {
+    return (req, res, next) => {
+        if (!roles.some(role => req.user.roles.includes(role))) {
+            return res.status(403).json({ message: 'Accès non autorisé' });
+        }
+        next();
+    };
+};

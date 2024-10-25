@@ -5,10 +5,10 @@ const bcrypt = require('bcrypt');
 
 exports.register = async (req, res) => {
     try {
-        const { phoneNumber, pinCode } = req.body;
+        const { nom, prenom, telephone, pinCode } = req.body;
 
         // Vérifier si l'utilisateur existe déjà
-        const existingUser = await User.findOne({ phoneNumber });
+        const existingUser = await User.findOne({ telephone });
         if (existingUser) {
             return res.status(400).json({ message: 'Utilisateur déjà existant' });
         }
@@ -18,9 +18,14 @@ exports.register = async (req, res) => {
 
         // Créer un nouvel utilisateur
         const user = new User({
-            phoneNumber,
+            nom,
+            prenom,
+            telephone,
             pinCode: hashedPinCode,
-            // Ajoutez d'autres champs si nécessaire
+            solde: req.body.solde || 0,
+            roles: req.body.roles || ['utilisateur'],
+            isTelephoneVerifie: req.body.isTelephoneVerifie || false,
+            tokens: req.body.tokens || []
         });
 
         await user.save();
@@ -31,6 +36,7 @@ exports.register = async (req, res) => {
         res.status(500).json({ message: 'Erreur serveur' });
     }
 };
+
 
 exports.login = async (req, res) => {
     try {

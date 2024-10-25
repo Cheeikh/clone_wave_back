@@ -26,13 +26,23 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Importer les routes
 const authRoutes = require('./routes/authRoutes');
-// Importez d'autres routes ici si nécessaire
+const billPaymentRoutes = require('./routes/billPaymentRoutes'); 
 
 // Vérifier le type de authRoutes
 console.log('authRoutes:', authRoutes); // Doit afficher un objet Router
+console.log('billPaymentRoutes:', billPaymentRoutes);
+
 
 // Utiliser les routes
 app.use('/api/auth', authRoutes);
+app.use('/api/billpayments', billPaymentRoutes); // Ajout des routes de paiement
+
+
+// Route de test API
+app.get('/api/test', (req, res) => {
+    res.json({ message: 'API fonctionne correctement' });
+});
+
 
 // Middleware de gestion des erreurs (facultatif mais recommandé)
 app.use((err, req, res, next) => {

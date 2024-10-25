@@ -11,9 +11,9 @@ tags:
   - name: Transactions
     description: Gestion des transactions financières
 paths:
-  /api/auth/register:
+  /api/auth/initiate-register:
     post:
-      summary: Inscription d'un nouvel utilisateur
+      summary: Initier l'inscription d'un nouvel utilisateur
       tags:
         - Auth
       requestBody:
@@ -21,15 +21,39 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserRegister'
+              $ref: '#/components/schemas/InitiateRegister'
+      responses:
+        '200':
+          description: OTP envoyé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitiateResponse'
+        '400':
+          description: Erreur de validation
+  /api/auth/complete-register:
+    post:
+      summary: Finaliser l'inscription d'un nouvel utilisateur
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompleteRegister'
       responses:
         '201':
           description: Utilisateur créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
         '400':
           description: Erreur de validation
-  /api/auth/login:
+  /api/auth/initiate-login:
     post:
-      summary: Connexion de l'utilisateur
+      summary: Initier la connexion de l'utilisateur
       tags:
         - Auth
       requestBody:
@@ -37,10 +61,34 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserLogin'
+              $ref: '#/components/schemas/InitiateLogin'
+      responses:
+        '200':
+          description: OTP envoyé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitiateResponse'
+        '401':
+          description: Utilisateur non trouvé
+  /api/auth/complete-login:
+    post:
+      summary: Finaliser la connexion de l'utilisateur
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompleteLogin'
       responses:
         '200':
           description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
         '401':
           description: Identifiants invalides
   /api/transactions:
@@ -64,25 +112,78 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
-    UserRegister:
+    InitiateRegister:
       type: object
       properties:
-        phoneNumber:
+        telephone:
           type: string
           description: Numéro de téléphone de l'utilisateur
+        nom:
+          type: string
+          description: Nom de l'utilisateur
+        prenom:
+          type: string
+          description: Prénom de l'utilisateur
+        role:
+          type: string
+          enum: [utilisateur, agent, admin]
+          description: Rôle de l'utilisateur
+      required:
+        - telephone
+        - nom
+        - prenom
+        - role
+    CompleteRegister:
+      type: object
+      properties:
+        userId:
+          type: string
+          description: ID de l'utilisateur reçu lors de l'initiation
+        otpCode:
+          type: string
+          description: Code OTP reçu par SMS
         pinCode:
           type: string
           description: Code PIN à 4 chiffres
       required:
-        - phoneNumber
+        - userId
+        - otpCode
         - pinCode
-    UserLogin:
+    InitiateLogin:
       type: object
       properties:
-        phoneNumber:
+        telephone:
           type: string
+          description: Numéro de téléphone de l'utilisateur
+      required:
+        - telephone
+    CompleteLogin:
+      type: object
+      properties:
+        userId:
+          type: string
+          description: ID de l'utilisateur reçu lors de l'initiation
+        otpCode:
+          type: string
+          description: Code OTP reçu par SMS
         pinCode:
           type: string
+          description: Code PIN de l'utilisateur
       required:
-        - phoneNumber
+        - userId
+        - otpCode
         - pinCode
+    InitiateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        userId:
+          type: string
+    AuthResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        token:
+          type: string

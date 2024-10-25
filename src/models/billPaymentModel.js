@@ -1,3 +1,7 @@
+// src/models/billPaymentModel.js
+const mongoose = require('mongoose');
+const { Schema } = mongoose;
+
 const billPaymentSchema = new Schema({
     utilisateur: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     fournisseur: { type: String, required: true },

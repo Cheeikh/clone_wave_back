@@ -5,7 +5,7 @@ import YAML from 'yamljs';
 import path from 'path';
 import transactionRoutes from './routes/transactionRoutes.js';
 import dotenv from 'dotenv';
-import parameterRoutes from "./services/parameterRoutes.js";
+import parameterRoutes from "./routes/parameterRoutes.js";
 
 // Charger les variables d'environnement
 dotenv.config();

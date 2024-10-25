@@ -1,15 +1,11 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const connectDB = async () => {
     try {
-        // Charger les variables d'environnement
-        require('dotenv').config();
-
-        // Options de connexion à la base de données
-        const options = {
-        };
-
-        // Connexion à la base de données
+        const options = {}; // Ajoute des options si nécessaire
         await mongoose.connect(process.env.MONGODB_URI, options);
         console.log('Connexion à MongoDB réussie');
     } catch (error) {
@@ -18,4 +14,4 @@ const connectDB = async () => {
     }
 };
 
-module.exports = connectDB;
+export default connectDB;

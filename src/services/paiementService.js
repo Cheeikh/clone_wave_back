@@ -12,12 +12,25 @@ class PaiementService {
             const utilisateur = await User.findById(userId).session(session);
             const service = await Service.findById(serviceId).session(session);
 
-            if (!utilisateur || !service) {
-                throw new Error('Utilisateur ou service non trouvé');
+            // Vérification de l'existence de l'utilisateur et du service
+            if (!utilisateur) {
+                throw new Error('Utilisateur non trouvé');
+            }
+            if (!service) {
+                throw new Error('Service non trouvé');
             }
 
+            // Vérification détaillée du solde
             if (utilisateur.solde < service.prix) {
-                throw new Error('Solde insuffisant');
+                const soldeManquant = service.prix - utilisateur.solde;
+                const error = new Error('Solde insuffisant');
+                error.details = {
+                    soldeActuel: utilisateur.solde,
+                    prixService: service.prix,
+                    soldeManquant: soldeManquant,
+                    message: `Votre solde actuel est de ${utilisateur.solde}. Il vous manque ${soldeManquant} pour effectuer ce paiement.`
+                };
+                throw error;
             }
 
             // Générer une référence unique pour le paiement
@@ -34,7 +47,7 @@ class PaiementService {
             // Décrémenter le solde de l'utilisateur
             utilisateur.solde -= service.prix;
             await utilisateur.save({ session });
-            
+
             // Sauvegarder le paiement
             nouveauPaiement.statut = 'reussie';
             await nouveauPaiement.save({ session });
@@ -48,6 +61,16 @@ class PaiementService {
 
         } catch (error) {
             await session.abortTransaction();
+            
+            // Si c'est une erreur de solde insuffisant, on retourne les détails
+            if (error.details) {
+                throw {
+                    message: error.message,
+                    ...error.details,
+                    code: 'SOLDE_INSUFFISANT'
+                };
+            }
+            
             throw error;
         } finally {
             session.endSession();

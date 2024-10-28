@@ -57,6 +57,27 @@ paths:
       responses:
         '200':
           description: Liste des transactions
+
+  /api/credit/achat_credit:
+    post:
+      summary: Achat de crédit
+      description: Permet l'achat de crédit pour un utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phoneNumber:
+                  type: string
+                amount:
+                  type: number
+      responses:
+        '200':
+          description: Achat de credit réussi 
+        '400':
+          description: Erreur de validation
 components:
   securitySchemes:
     bearerAuth:
@@ -86,3 +107,5 @@ components:
       required:
         - phoneNumber
         - pinCode
+
+    

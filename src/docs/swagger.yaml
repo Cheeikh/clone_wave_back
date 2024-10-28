@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Wave Mobile Clone API
-  version: '1.0.0'
+  version: "1.0.0"
   description: Documentation de l'API pour le clone de Wave Mobile
 servers:
   - url: http://localhost:5000
@@ -11,9 +11,9 @@ tags:
   - name: Transactions
     description: Gestion des transactions financières
 paths:
-  /api/auth/register:
+  /api/auth/initiate-register:
     post:
-      summary: Inscription d'un nouvel utilisateur
+      summary: Initier l'inscription d'un nouvel utilisateur
       tags:
         - Auth
       requestBody:
@@ -21,15 +21,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserRegister'
+              $ref: "#/components/schemas/InitiateRegister"
       responses:
-        '201':
-          description: Utilisateur créé avec succès
-        '400':
+        "200":
+          description: OTP envoyé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InitiateResponse"
+        "400":
           description: Erreur de validation
-  /api/auth/login:
+
+  /api/auth/complete-register:
     post:
-      summary: Connexion de l'utilisateur
+      summary: Finaliser l'inscription d'un nouvel utilisateur
       tags:
         - Auth
       requestBody:
@@ -37,12 +42,59 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserLogin'
+              $ref: "#/components/schemas/CompleteRegister"
       responses:
-        '200':
+        "201":
+          description: Utilisateur créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Erreur de validation
+
+  /api/auth/initiate-login:
+    post:
+      summary: Initier la connexion de l'utilisateur
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InitiateLogin"
+      responses:
+        "200":
+          description: OTP envoyé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InitiateResponse"
+        "401":
+          description: Utilisateur non trouvé
+
+  /api/auth/complete-login:
+    post:
+      summary: Finaliser la connexion de l'utilisateur
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompleteLogin"
+      responses:
+        "200":
           description: Connexion réussie
-        '401':
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
           description: Identifiants invalides
+
   /api/transactions:
     get:
       summary: Récupérer la liste des transactions
@@ -55,8 +107,100 @@ paths:
             type: string
           description: Filtrer les transactions (jour, semaine, mois, année)
       responses:
-        '200':
+        "200":
           description: Liste des transactions
+
+  /api/transactions/debit:
+    post:
+      summary: Effectuer un débit
+      tags:
+        - Transactions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionRequest"
+      responses:
+        "200":
+          description: Débit effectué avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionResponse"
+        "400":
+          description: Erreur de validation ou solde insuffisant
+
+  /api/transactions/credit:
+    post:
+      summary: Effectuer un crédit
+      tags:
+        - Transactions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionRequest"
+      responses:
+        "200":
+          description: Crédit effectué avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionResponse"
+        "400":
+          description: Erreur de validation
+
+  /api/users/{userId}/solde:
+    get:
+      summary: Obtenir le solde de l'utilisateur
+      tags:
+        - Transactions
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: ID de l'utilisateur
+      responses:
+        "200":
+          description: Solde de l'utilisateur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  solde:
+                    type: number
+        "404":
+          description: Utilisateur non trouvé
+
+  /api/users/{userId}/transactions:
+    get:
+      summary: Obtenir l'historique des transactions d'un utilisateur
+      tags:
+        - Transactions
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: ID de l'utilisateur
+      responses:
+        "200":
+          description: Liste des transactions de l'utilisateur
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TransactionResponse"
+        "404":
+          description: Utilisateur non trouvé
+
 components:
   securitySchemes:
     bearerAuth:
@@ -64,25 +208,123 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
-    UserRegister:
+    InitiateRegister:
       type: object
       properties:
-        phoneNumber:
+        telephone:
           type: string
           description: Numéro de téléphone de l'utilisateur
+        nom:
+          type: string
+          description: Nom de l'utilisateur
+        prenom:
+          type: string
+          description: Prénom de l'utilisateur
+        role:
+          type: string
+          enum: [utilisateur, agent, admin]
+          description: Rôle de l'utilisateur
+      required:
+        - telephone
+        - nom
+        - prenom
+        - role
+
+    CompleteRegister:
+      type: object
+      properties:
+        userId:
+          type: string
+          description: ID de l'utilisateur reçu lors de l'initiation
+        otpCode:
+          type: string
+          description: Code OTP reçu par SMS
         pinCode:
           type: string
           description: Code PIN à 4 chiffres
       required:
-        - phoneNumber
+        - userId
+        - otpCode
         - pinCode
-    UserLogin:
+
+    InitiateLogin:
       type: object
       properties:
-        phoneNumber:
+        telephone:
           type: string
+          description: Numéro de téléphone de l'utilisateur
+      required:
+        - telephone
+
+    CompleteLogin:
+      type: object
+      properties:
+        userId:
+          type: string
+          description: ID de l'utilisateur reçu lors de l'initiation
+        otpCode:
+          type: string
+          description: Code OTP reçu par SMS
         pinCode:
           type: string
+          description: Code PIN de l'utilisateur
       required:
-        - phoneNumber
+        - userId
+        - otpCode
         - pinCode
+
+    InitiateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        userId:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        token:
+          type: string
+
+    TransactionRequest:
+      type: object
+      properties:
+        montant:
+          type: number
+          description: Montant de la transaction
+        utilisateurSource:
+          type: string
+          description: ID de l'utilisateur source pour un débit
+        utilisateurDestination:
+          type: string
+          description: ID de l'utilisateur destination pour un crédit
+      required:
+        - montant
+
+    TransactionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        montant:
+          type: number
+        type:
+          type: string
+          enum: [debit, credit]
+        utilisateurSource:
+          type: string
+        utilisateurDestination:
+          type: string
+        status:
+          type: string
+          enum: [en_attente, terminee, echouee]
+        fraisTransaction:
+          type: number
+        commission:
+          type: number
+        creeLe:
+          type: string
+          format: date-time

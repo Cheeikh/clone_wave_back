@@ -9,9 +9,9 @@ const agentSchema = new Schema({
     solde: { type: Number, default: 0 },
     commissionsAccumulees: { type: Number, default: 0 },
     roles: [{ type: String, enum: ['agent'] }],
-    isTelephoneVerifie: { type: Boolean, default: false },
-    creeLe: { type: Date, default: Date.now },
-    modifieLe: { type: Date, default: Date.now },
+    isTelephoneVerifie: { type: Boolean, default: false }
+}, {
+    timestamps: true,
 });
 
 module.exports = mongoose.model('Agent', agentSchema);

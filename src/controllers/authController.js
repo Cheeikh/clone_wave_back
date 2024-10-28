@@ -47,6 +47,7 @@ if (!process.env.JWT_SECRET) {
 
 exports.initiateRegister = async (req, res) => {
     try {
+
         const { telephone, nom, prenom, role } = req.body;
 
         // Vérifier si le rôle est valide
@@ -111,6 +112,7 @@ exports.completeRegister = async (req, res) => {
         // Hacher le code PIN
         const hashedPinCode = await bcrypt.hash(pinCode, 10);
 
+
         // Mettre à jour l'utilisateur
         user.pinCode = hashedPinCode;
         user.isTelephoneVerifie = true;
@@ -162,6 +164,7 @@ exports.initiateLogin = async (req, res) => {
         res.status(500).json({ message: 'Erreur serveur' });
     }
 };
+
 
 exports.completeLogin = async (req, res) => {
     try {

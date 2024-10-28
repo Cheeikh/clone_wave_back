@@ -1,5 +1,6 @@
 // src/app.js
 
+
 const express = require("express");
 const connectDB = require("./config/database");
 const swaggerUi = require("swagger-ui-express");
@@ -20,17 +21,24 @@ connectDB();
 // Middleware pour parser les requêtes JSON
 app.use(express.json());
 
+// Configurer les fichiers statiques
+app.use(express.static(path.join(__dirname, '..', 'public')));
+
 // Charger le fichier swagger.yaml
 const swaggerDocument = YAML.load(path.join(__dirname, "docs", "swagger.yaml"));
 
 // Configurer Swagger UI
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-// Importer les routes
+
 const authRoutes = require("./routes/authRoutes");
 const billPaymentRoutes = require("./routes/billPaymentRoutes");
 const creditRoutes = require("./routes/creditRoutes");
 const transactionRoutes = require("./routes/transactionRoutes"); // Importer les routes de transactions
+const serviceRoutes = require('./routes/serviceRoutes');
+const paiementRoutes = require('./routes/paiementRoutes');
+
+
 
 // Vérifier le type de authRoutes
 console.log("authRoutes:", authRoutes); // Doit afficher un objet Router
@@ -41,6 +49,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/billpayments", billPaymentRoutes); // Ajout des routes de paiement
 app.use("/api/credit", creditRoutes); // Utiliser les routes pour achatCredit
 app.use("/api", transactionRoutes); // Ajouter les routes pour transactions
+app.use('/api/services', serviceRoutes);
+app.use('/api/paiements', paiementRoutes);
 
 // Route de test API
 app.get("/api/test", (req, res) => {
@@ -56,5 +66,6 @@ app.use((err, req, res, next) => {
 // Démarrer le serveur
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
+
   console.log(`Serveur démarré sur le port ${PORT}`);
 });

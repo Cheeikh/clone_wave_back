@@ -10,6 +10,8 @@ tags:
     description: Gestion de l'authentification
   - name: Transactions
     description: Gestion des transactions financières
+  - name: Agents
+    description: Gestion des agents et leurs commissions
 paths:
   /api/auth/initiate-register:
     post:
@@ -31,6 +33,7 @@ paths:
                 $ref: '#/components/schemas/InitiateResponse'
         '400':
           description: Erreur de validation
+
   /api/auth/complete-register:
     post:
       summary: Finaliser l'inscription d'un nouvel utilisateur
@@ -51,6 +54,7 @@ paths:
                 $ref: '#/components/schemas/AuthResponse'
         '400':
           description: Erreur de validation
+
   /api/auth/initiate-login:
     post:
       summary: Initier la connexion de l'utilisateur
@@ -71,6 +75,7 @@ paths:
                 $ref: '#/components/schemas/InitiateResponse'
         '401':
           description: Utilisateur non trouvé
+
   /api/auth/complete-login:
     post:
       summary: Finaliser la connexion de l'utilisateur
@@ -91,6 +96,7 @@ paths:
                 $ref: '#/components/schemas/AuthResponse'
         '401':
           description: Identifiants invalides
+
   /api/transactions:
     get:
       summary: Récupérer la liste des transactions
@@ -105,6 +111,149 @@ paths:
       responses:
         '200':
           description: Liste des transactions
+
+  /api/transactions/depot:
+    post:
+      summary: Effectuer un dépôt
+      tags:
+        - Transactions
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepotRequest'
+      responses:
+        '200':
+          description: Dépôt effectué avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        '401':
+          description: Non autorisé
+        '403':
+          description: Accès refusé (rôle agent requis)
+
+  /api/transactions/retrait:
+    post:
+      summary: Effectuer un retrait
+      tags:
+        - Transactions
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RetraitRequest'
+      responses:
+        '200':
+          description: Retrait effectué avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        '401':
+          description: Non autorisé
+        '403':
+          description: Accès refusé (rôle agent requis)
+
+  /api/transactions/webhook:
+    post:
+      summary: Webhook pour les notifications de transaction
+      tags:
+        - Transactions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookRequest'
+      responses:
+        '200':
+          description: Webhook traité avec succès
+
+  /api/transactions/{id}/status:
+    get:
+      summary: Vérifier le statut d'une transaction
+      tags:
+        - Transactions
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de la transaction
+      responses:
+        '200':
+          description: Statut de la transaction
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionStatus'
+        '401':
+          description: Non autorisé
+        '404':
+          description: Transaction non trouvée
+
+  /api/transactions/agent/{id}/commissions:
+    get:
+      summary: Obtenir les commissions d'un agent
+      tags:
+        - Agents
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de l'agent
+      responses:
+        '200':
+          description: Liste des commissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommissionResponse'
+        '401':
+          description: Non autorisé
+        '403':
+          description: Accès refusé (rôle agent requis)
+
+  /api/transactions/agent/commission/retrait:
+    post:
+      summary: Retrait des commissions par un agent
+      tags:
+        - Agents
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommissionRetraitRequest'
+      responses:
+        '200':
+          description: Retrait des commissions effectué avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommissionRetraitResponse'
+        '401':
+          description: Non autorisé
+        '403':
+          description: Accès refusé (rôle agent requis)
+
 components:
   securitySchemes:
     bearerAuth:
@@ -133,6 +282,7 @@ components:
         - nom
         - prenom
         - role
+
     CompleteRegister:
       type: object
       properties:
@@ -149,6 +299,7 @@ components:
         - userId
         - otpCode
         - pinCode
+
     InitiateLogin:
       type: object
       properties:
@@ -157,6 +308,7 @@ components:
           description: Numéro de téléphone de l'utilisateur
       required:
         - telephone
+
     CompleteLogin:
       type: object
       properties:
@@ -173,6 +325,7 @@ components:
         - userId
         - otpCode
         - pinCode
+
     InitiateResponse:
       type: object
       properties:
@@ -180,6 +333,7 @@ components:
           type: string
         userId:
           type: string
+
     AuthResponse:
       type: object
       properties:
@@ -187,3 +341,108 @@ components:
           type: string
         token:
           type: string
+
+    DepotRequest:
+      type: object
+      properties:
+        montant:
+          type: number
+          description: Montant du dépôt
+        telephoneClient:
+          type: string
+          description: Numéro de téléphone du client
+      required:
+        - montant
+        - telephoneClient
+
+    RetraitRequest:
+      type: object
+      properties:
+        montant:
+          type: number
+          description: Montant du retrait
+        telephoneClient:
+          type: string
+          description: Numéro de téléphone du client
+      required:
+        - montant
+        - telephoneClient
+
+    WebhookRequest:
+      type: object
+      properties:
+        transactionId:
+          type: string
+        status:
+          type: string
+          enum: [success, failed, pending]
+        message:
+          type: string
+      required:
+        - transactionId
+        - status
+
+    TransactionResponse:
+      type: object
+      properties:
+        transactionId:
+          type: string
+        status:
+          type: string
+          enum: [success, pending, failed]
+        message:
+          type: string
+        montant:
+          type: number
+
+    TransactionStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [success, pending, failed]
+        details:
+          type: object
+          description: Détails supplémentaires sur la transaction
+
+    CommissionResponse:
+      type: object
+      properties:
+        total:
+          type: number
+          description: Montant total des commissions
+        transactions:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date-time
+              montant:
+                type: number
+              type:
+                type: string
+                enum: [depot, retrait]
+
+    CommissionRetraitRequest:
+      type: object
+      properties:
+        montant:
+          type: number
+          description: Montant à retirer des commissions
+      required:
+        - montant
+
+    CommissionRetraitResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        montant:
+          type: number
+        soldeRestant:
+          type: number
+          description: Solde des commissions restant après le retrait

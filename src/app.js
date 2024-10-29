@@ -10,7 +10,6 @@ const cors = require('cors');
 // Charger les variables d'environnement
 require('dotenv').config();
 
-
 // Initialiser Express
 const app = express();
 app.use(cors());
@@ -29,30 +28,25 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Importer les routes
 const authRoutes = require('./routes/authRoutes');
-
-const billPaymentRoutes = require('./routes/billPaymentRoutes'); 
-
+const billPaymentRoutes = require('./routes/billPaymentRoutes');
 const creditRoutes = require('./routes/creditRoutes');
-// Importez d'autres routes ici si nécessaire
+const transactionRoutes = require('./routes/transactionRoutes'); // Nouvelle importation
 
-// Vérifier le type de authRoutes
-console.log('authRoutes:', authRoutes); // Doit afficher un objet Router
+// Vérifier le type des routes
+console.log('authRoutes:', authRoutes);
 console.log('billPaymentRoutes:', billPaymentRoutes);
-
+console.log('transactionRoutes:', transactionRoutes); // Ajout du log pour vérification
 
 // Utiliser les routes
 app.use('/api/auth', authRoutes);
-app.use('/api/billpayments', billPaymentRoutes); // Ajout des routes de paiement
-
+app.use('/api/billpayments', billPaymentRoutes);
+app.use('/api/credit', creditRoutes);
+app.use('/api/transactions', transactionRoutes); // Nouvelle route pour les transactions
 
 // Route de test API
 app.get('/api/test', (req, res) => {
     res.json({ message: 'API fonctionne correctement' });
 });
-
-
-//utiliser les routes pour achatCredit
-app.use('/api/credit', creditRoutes);
 
 // Middleware de gestion des erreurs (facultatif mais recommandé)
 app.use((err, req, res, next) => {

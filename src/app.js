@@ -43,7 +43,6 @@ const creditRoutes = require('./routes/creditRoutes');
 const userRoutes = require('./routes/userRoutes');
 const transactionRoutes = require('./routes/transactionRoutes');
 const qrRoutes = require('./routes/qrRoutes');
-const serviceRoutes = require('./routes/serviceRoutes');
 
 // Utiliser les routes
 app.use('/api/auth', authRoutes);
@@ -52,7 +51,6 @@ app.use('/api/credit', creditRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/qr', qrRoutes);
-app.use('/api/services', serviceRoutes);
 
 // Route de test API
 app.get('/api/test', (req, res) => {

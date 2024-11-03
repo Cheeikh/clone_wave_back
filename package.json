@@ -25,7 +25,6 @@
     "swagger-ui-express": "^5.0.1",
     "twilio": "^5.3.5",
     "wave_clone_back": "file:",
-
     "yamljs": "^0.3.0"
   },
   "devDependencies": {

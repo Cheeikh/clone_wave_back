@@ -10,10 +10,19 @@ const cors = require('cors');
 // Charger les variables d'environnement
 require('dotenv').config();
 
-
 // Initialiser Express
 const app = express();
-app.use(cors());
+
+// Configuration CORS
+const corsOptions = {
+  origin: '*',
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+  optionsSuccessStatus: 204
+};
+
+// Appliquer CORS
+app.use(cors(corsOptions));
 
 // Connecter à la base de données
 connectDB();
@@ -29,35 +38,39 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Importer les routes
 const authRoutes = require('./routes/authRoutes');
-
 const billPaymentRoutes = require('./routes/billPaymentRoutes'); 
-
 const creditRoutes = require('./routes/creditRoutes');
-// Importez d'autres routes ici si nécessaire
-
-// Vérifier le type de authRoutes
-console.log('authRoutes:', authRoutes); // Doit afficher un objet Router
-console.log('billPaymentRoutes:', billPaymentRoutes);
-
+const userRoutes = require('./routes/userRoutes');
+const transactionRoutes = require('./routes/transactionRoutes');
 
 // Utiliser les routes
 app.use('/api/auth', authRoutes);
-app.use('/api/billpayments', billPaymentRoutes); // Ajout des routes de paiement
-
+app.use('/api/billpayments', billPaymentRoutes);
+app.use('/api/credit', creditRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/transactions', transactionRoutes);
 
 // Route de test API
 app.get('/api/test', (req, res) => {
     res.json({ message: 'API fonctionne correctement' });
 });
 
-
-//utiliser les routes pour achatCredit
-app.use('/api/credit', creditRoutes);
-
-// Middleware de gestion des erreurs (facultatif mais recommandé)
+// Middleware de gestion des erreurs
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).json({ message: 'Une erreur est survenue' });
+    
+    // Gestion spécifique des erreurs de transaction
+    if (err.name === 'TransactionError') {
+        return res.status(400).json({ 
+            success: false,
+            error: err.message 
+        });
+    }
+    
+    res.status(500).json({ 
+        success: false,
+        error: 'Une erreur est survenue' 
+    });
 });
 
 // Démarrer le serveur
@@ -65,3 +78,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
 });
+
+module.exports = app;

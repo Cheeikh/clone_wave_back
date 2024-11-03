@@ -42,6 +42,7 @@ const billPaymentRoutes = require('./routes/billPaymentRoutes');
 const creditRoutes = require('./routes/creditRoutes');
 const userRoutes = require('./routes/userRoutes');
 const transactionRoutes = require('./routes/transactionRoutes');
+const qrRoutes = require('./routes/qrRoutes');
 
 // Utiliser les routes
 app.use('/api/auth', authRoutes);
@@ -49,6 +50,7 @@ app.use('/api/billpayments', billPaymentRoutes);
 app.use('/api/credit', creditRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/api/qr', qrRoutes);
 
 // Route de test API
 app.get('/api/test', (req, res) => {

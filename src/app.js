@@ -13,9 +13,9 @@ require('dotenv').config();
 // Initialiser Express
 const app = express();
 
-// Configuration CORS
+// Configuration CORS avec variable d'environnement
 const corsOptions = {
-  origin: '*',
+  origin: process.env.CORS_ORIGIN || '*',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
   optionsSuccessStatus: 204
@@ -75,8 +75,9 @@ app.use((err, req, res, next) => {
 
 // Démarrer le serveur
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Serveur démarré sur le port ${PORT}`);
+const HOST = process.env.HOST || '0.0.0.0';
+app.listen(PORT, HOST, () => {
+    console.log(`Serveur démarré sur ${HOST}:${PORT}`);
 });
 
 module.exports = app;

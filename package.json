@@ -5,7 +5,9 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "init-services": "node src/scripts/initServices.js",
+    "update-users": "node src/scripts/updateUsers.js"
   },
   "keywords": [],
   "author": "",
